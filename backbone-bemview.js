@@ -33,4 +33,6 @@
             Backbone.BEMView.delegateEvents = delegateEvents;
         }
     });
+
+    return Backbone;
 }));
