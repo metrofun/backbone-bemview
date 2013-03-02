@@ -15,22 +15,35 @@
     function delegateEvents() {
         var $el = this.$el;
 
+        // swap $el with document.body
+        // and use originate delegateEvents
         this.$el = jQuery(document.body);
-        Backbone.View.delegateEvents.apply(this, arguments);
+        Backbone.View.prototype.delegateEvents.apply(this, arguments);
         this.$el = $el;
 
-        Backbone.BEMView.delegateEvents = function () {};
+        // We need delegate only once for every contructor,
+        // so we add another "delegateEvents"
+        // preceding to current in prototype chain
+        this.constructor.prototype.delegateEvents = function () {};
     }
 
-    Backbone.BEMView = _.extend(Backbone.View, {
+    Backbone.BEMView = function () {
+        return Backbone.View.apply(this, arguments);
+    };
+    Backbone.BEMView.extend = Backbone.View.extend;
+    _.extend(Backbone.BEMView.prototype, new Backbone.View(), {
         delegateEvents: delegateEvents,
         undelegateEvents: function () {
             var $el = this.$el;
 
             this.$el = jQuery(document.body);
-            Backbone.View.undelegateEvents.apply(this, arguments);
+            Backbone.View.prototype.undelegateEvents.apply(this, arguments);
             this.$el = $el;
-            Backbone.BEMView.delegateEvents = delegateEvents;
+
+            // If events were undelegated,
+            // then restore our "delegateEvents"
+            // by removing preceding one in prototype chain
+            delete this.constructor.delegateEvents;
         }
     });
 
